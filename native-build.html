@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="generator" content="rustdoc">
+    <title>Building external code</title>
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css">
+<link rel="stylesheet" type="text/css" href="stylesheets/all.css">
+<link rel="stylesheet" type="text/css" href="stylesheets/prism.css">
+
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+<a href='https://github.com/rust-lang/cargo' class='fork-me'>
+  <img src='images/forkme.png'/>
+</a>
+<a href='index.html' class='logo'><img src='images/Cargo-Logo-Small.png'/></a>
+
+<main>
+  <p>
+    Cargo downloads your <a href="http://rust-lang.org">Rust</a>
+    project's dependencies and builds your project
+  </p>
+
+
+    <h1 class="title">Building external code</h1>
+    <p>Some packages need to compile third-party non-Rust code that you will
+link into your Rust code using <code>#[link]</code> (more information on <code>#[link]</code>
+can be found in <a href="http://doc.rust-lang.org/rust.html#linkage">the Rust manual</a>).</p>
+
+<p>Cargo does not aim to replace other tools that are well-optimized for
+building C or C++ code, but it does integrate with them with the <code>build</code>
+configuration option.</p>
+
+<pre><code class="language-toml">[package]
+
+name = &quot;hello-world-from-c&quot;
+version = &quot;0.0.1&quot;
+authors = [ &quot;you@example.com&quot; ]
+build = &quot;make&quot;
+</code></pre>
+
+<p>The <code>build</code> command will be invoked before <code>rustc</code>, allowing your Rust
+code to depend on the built artifacts.</p>
+
+<p>Here&#39;s what you need to know:</p>
+
+<ul>
+<li>Cargo passes your build script an environment variable named
+<code>OUT_DIR</code>, which is where you should put any compiled artifacts. It
+will be different for different Cargo commands, but Cargo will always
+pass that output directory as a lib directory to <code>rustc</code>.</li>
+<li>Cargo will retain all output in <code>OUT_DIR</code> for clean packages across
+builds (intelligently discarding the compiled artifacts for dirty
+dependencies). Do not put the output of a build command in any other
+directory.</li>
+<li>The actual location of <code>$OUT_DIR</code> is
+<code>/path/to/project/target/native/$your-out-dir</code>.</li>
+<li>The target triple that the build command should compile for is specified by
+the <code>TARGET</code> environment variable.</li>
+</ul>
+
+<p>What this means is that the normal workflow for build dependencies is:</p>
+
+<ul>
+<li>The first time a user types <code>cargo build</code> for a project that contains
+your package, your <code>build</code> script will be invoked. Place any artifacts
+into the provided <code>$OUT_DIR</code>.</li>
+<li>The next time a user runs <code>cargo build</code>, if the dependency has not
+changed (via <code>cargo update &lt;your-package&gt;</code>), Cargo will reuse the
+output you provided before. Your build command will not be invoked.</li>
+<li>If the user updates your package to a new version (or git revision),
+Cargo will <strong>not</strong> remove the old <code>$OUT_DIR</code> will re-invoke your build script.
+Your build script is responsible for bringing the state of the old directory
+up to date with the current state of the input files.</li>
+</ul>
+
+<p>In general, build scripts may not be as portable as we&#39;d like today. We
+encourage package authors to write build scripts that can work in both
+Windows and Unix environments.</p>
+
+<p>Several people who work on Cargo are also working on a project called
+<a href="https://github.com/alexcrichton/link-config">link-config</a>, which is a Rust syntax extension whose goal is to
+enable portable external compilation and linkage against system
+packages. We intend for it to eventually serve this purpose for Cargo
+projects.</p>
+
+<h1 id="environment-variables" class='section-header'><a
+                           href="#environment-variables">Environment Variables</a></h1>
+<p>The following environment variables are always available for build
+commands.</p>
+
+<ul>
+<li><code>OUT_DIR</code> - the folder in which all output should be placed.</li>
+<li><code>TARGET</code> - the target triple that is being compiled for. Native code should be
+         compiled for this triple.</li>
+<li><code>NUM_JOBS</code> - the parallelism specified as the top-level parallelism. This can
+           be useful to pass a <code>-j</code> parameter to a system like <code>make</code>.</li>
+<li><code>DEP_&lt;name&gt;_OUT_DIR</code> - This variable is present for all immediate dependencies
+                     of the package being built. The <code>&lt;name&gt;</code> will be the
+                     package&#39;s name, in uppercase, with <code>-</code> characters
+                     translated to a <code>_</code>. The value of this variable is the
+                     directory in which all the output of the dependency&#39;s
+                     build command was placed. This is useful for picking up
+                     things like header files and such from other packages.</li>
+<li><code>CARGO_MANIFEST_DIR</code> - The directory containing the manifest for the package
+                     being built.</li>
+<li><code>OPT_LEVEL</code>, <code>DEBUG</code> - values of the corresponding variables for the
+                     profile currently being built.</li>
+<li><code>PROFILE</code> - name of the profile currently being built (see
+          <a href="manifest.html#the-%5Bprofile.*%5D-sections">profiles</a>).</li>
+<li><code>CARGO_FEATURE_&lt;name&gt;</code> - For each activated feature of the package being
+                       built, this environment variable will be present
+                       where <code>&lt;name&gt;</code> is the name of the feature uppercased
+                       and having <code>-</code> translated to <code>_</code>.</li>
+</ul>
+
+<h1 id="a-complete-example" class='section-header'><a
+                           href="#a-complete-example">A complete example</a></h1>
+<p>The code blocks below lay out a cargo project which has a small and simple C
+dependency along with the necessary infrastructure for linking that to the rust
+program.</p>
+
+<pre><code class="language-toml"># Cargo.toml
+[package]
+
+name = &quot;hello-world-from-c&quot;
+version = &quot;0.0.1&quot;
+authors = [ &quot;you@example.com&quot; ]
+build = &quot;make -C build&quot;
+</code></pre>
+
+<pre><code class="language-make"># build/Makefile
+
+# Support cross compilation to/from 32/64 bit.
+ARCH := $(word 1, $(subst -, ,$(TARGET)))
+ifeq ($(ARCH),i686)
+CFLAGS += -m32 -fPIC
+else
+CFLAGS += -m64 -fPIC
+endif
+
+all:
+    $(CC) $(CFLAGS) hello.c -c -o &quot;$$OUT_DIR&quot;/hello.o
+    $(AR) crus &quot;$$OUT_DIR&quot;/libhello.a &quot;$$OUT_DIR&quot;/hello.o
+
+</code></pre>
+
+<pre><code class="language-c">// build/hello.c
+int foo() { return 1; }
+</code></pre>
+<pre class='rust '>
+<span class='comment'>// src/main.rs</span>
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>libc</span>;
+
+<span class='attribute'>#[<span class='ident'>link</span>(<span class='ident'>name</span> <span class='op'>=</span> <span class='string'>&quot;hello&quot;</span>, <span class='ident'>kind</span> <span class='op'>=</span> <span class='string'>&quot;static&quot;</span>)]</span>
+<span class='kw'>extern</span> {
+    <span class='kw'>fn</span> <span class='ident'>foo</span>() <span class='op'>-&gt;</span> <span class='ident'>libc</span>::<span class='ident'>c_int</span>;
+}
+
+<span class='kw'>fn</span> <span class='ident'>main</span>() {
+    <span class='kw'>let</span> <span class='ident'>number</span> <span class='op'>=</span> <span class='kw'>unsafe</span> { <span class='ident'>foo</span>() };
+    <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;found {} from C!&quot;</span>, <span class='ident'>number</span>);
+}
+</pre>
+
+    <script type="text/javascript">
+        window.playgroundUrl = "";
+    </script>
+      <footer>
+    <a href='guide.html'>Guide</a> |
+    <a href='faq.html'>Frequently Asked Questions</a> |
+    <a href='manifest.html'>Manifest Format</a> |
+    <a href='native-build.html'>Building Non-Rust Code</a> |
+    <a href='config.html'>Configuration</a>
+  </footer>
+</main>
+
+<script type='text/javascript' src='javascripts/prism.js'></script>
+<script type='text/javascript' src='javascripts/all.js'></script>
+
+
+</body>
+</html>

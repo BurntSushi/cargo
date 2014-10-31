@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="generator" content="rustdoc">
+    <title>Package ID Specifications</title>
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css">
+<link rel="stylesheet" type="text/css" href="stylesheets/all.css">
+<link rel="stylesheet" type="text/css" href="stylesheets/prism.css">
+
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+<a href='https://github.com/rust-lang/cargo' class='fork-me'>
+  <img src='images/forkme.png'/>
+</a>
+<a href='index.html' class='logo'><img src='images/Cargo-Logo-Small.png'/></a>
+
+<main>
+  <p>
+    Cargo downloads your <a href="http://rust-lang.org">Rust</a>
+    project's dependencies and builds your project
+  </p>
+
+
+    <h1 class="title">Package ID Specifications</h1>
+    
+<h1 id="package-id-specifications" class='section-header'><a
+                           href="#package-id-specifications">Package ID Specifications</a></h1>
+<p>Subcommands of cargo frequently need to refer to a particular package within a
+dependency graph for various operations like updating, cleaning, building etc.
+To solve this problem, cargo supports Package ID Specifications. A specification
+is a string which is used to uniquely refer to one package within a graph of
+packages.</p>
+
+<h2 id="specification-grammar" class='section-header'><a
+                           href="#specification-grammar">Specification grammar</a></h2>
+<p>The formal grammar for a Package Id Specification is:</p>
+
+<pre><code class="language-notrust">pkgid := pkgname
+       | [ proto &quot;://&quot; ] hostname-and-path [ &quot;#&quot; ( pkgname | semver ) ]
+pkgname := name [ &quot;:&quot; semver ]
+
+proto := &quot;http&quot; | &quot;git&quot; | ...
+</code></pre>
+
+<p>Here, brackets indicate that the contents are optional.</p>
+
+<h2 id="example-specifications" class='section-header'><a
+                           href="#example-specifications">Example Specifications</a></h2>
+<p>These could all be references to a package <code>foo</code> version <code>1.2.3</code> from the
+registry at <code>crates.io</code></p>
+
+<table><thead>
+<tr>
+<th style="text-align: right">pkgid</th>
+<th style="text-align: center">name</th>
+<th style="text-align: center">version</th>
+<th style="text-align: center">url</th>
+</tr>
+</thead><tbody>
+<tr>
+<td style="text-align: right"><code>foo</code></td>
+<td style="text-align: center">foo</td>
+<td style="text-align: center">*</td>
+<td style="text-align: center">*</td>
+</tr>
+<tr>
+<td style="text-align: right"><code>foo:1.2.3</code></td>
+<td style="text-align: center">foo</td>
+<td style="text-align: center">1.2.3</td>
+<td style="text-align: center">*</td>
+</tr>
+<tr>
+<td style="text-align: right"><code>crates.io/foo</code></td>
+<td style="text-align: center">foo</td>
+<td style="text-align: center">*</td>
+<td style="text-align: center">*://crates.io/foo</td>
+</tr>
+<tr>
+<td style="text-align: right"><code>crates.io/foo#1.2.3</code></td>
+<td style="text-align: center">foo</td>
+<td style="text-align: center">1.2.3</td>
+<td style="text-align: center">*://crates.io/foo</td>
+</tr>
+<tr>
+<td style="text-align: right"><code>crates.io/bar#foo:1.2.3</code></td>
+<td style="text-align: center">foo</td>
+<td style="text-align: center">1.2.3</td>
+<td style="text-align: center">*://crates.io/bar</td>
+</tr>
+<tr>
+<td style="text-align: right"><code>http://crates.io/foo#1.2.3</code></td>
+<td style="text-align: center">foo</td>
+<td style="text-align: center">1.2.3</td>
+<td style="text-align: center"><a href="http://crates.io/foo">http://crates.io/foo</a></td>
+</tr>
+</tbody></table>
+
+<h2 id="brevity-of-specifications" class='section-header'><a
+                           href="#brevity-of-specifications">Brevity of Specifications</a></h2>
+<p>The goal of this is to enable both succinct and exhausitive syntaxes for
+referring to packages in a dependency graph. Ambiguous references may refer to
+one or more packages. Most commands generate an error if more than one package
+could be referred to with the same specification.</p>
+
+    <script type="text/javascript">
+        window.playgroundUrl = "";
+    </script>
+      <footer>
+    <a href='guide.html'>Guide</a> |
+    <a href='faq.html'>Frequently Asked Questions</a> |
+    <a href='manifest.html'>Manifest Format</a> |
+    <a href='native-build.html'>Building Non-Rust Code</a> |
+    <a href='config.html'>Configuration</a>
+  </footer>
+</main>
+
+<script type='text/javascript' src='javascripts/prism.js'></script>
+<script type='text/javascript' src='javascripts/all.js'></script>
+
+
+</body>
+</html>

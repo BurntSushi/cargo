@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="generator" content="rustdoc">
+    <title>Cargo, Rust&#39;s Package Manager</title>
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css">
+<link rel="stylesheet" type="text/css" href="stylesheets/all.css">
+<link rel="stylesheet" type="text/css" href="stylesheets/prism.css">
+
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+<a href='https://github.com/rust-lang/cargo' class='fork-me'>
+  <img src='images/forkme.png'/>
+</a>
+<a href='index.html' class='logo'><img src='images/Cargo-Logo-Small.png'/></a>
+
+<main>
+  <p>
+    Cargo downloads your <a href="http://rust-lang.org">Rust</a>
+    project's dependencies and builds your project
+  </p>
+
+
+    <h1 class="title">Cargo, Rust&#39;s Package Manager</h1>
+    
+<h1 id="installing" class='section-header'><a
+                           href="#installing">Installing</a></h1>
+<p>The easiest way to get Cargo is to get the Rust nightly build by using
+the <code>rustup</code> script:</p>
+
+<pre><code class="language-shell">$ curl https://static.rust-lang.org/rustup.sh | sudo bash
+</code></pre>
+
+<p>This will get you the latest Rust nightly for your platform along with
+the latest Cargo. You should run this script almost every day to get the latest updates.</p>
+
+<p>If you are on Windows, you can directly download the latest 32bit (<a href="https://static.rust-lang.org/dist/rust-nightly-i686-w64-mingw32.exe">Rust</a>
+and <a href="https://static.rust-lang.org/cargo-dist/cargo-nightly-i686-w64-mingw32.tar.gz">Cargo</a>) or 64bit (<a href="https://static.rust-lang.org/dist/rust-nightly-x86_64-w64-mingw32.exe">Rust</a> and <a href="https://static.rust-lang.org/cargo-dist/cargo-nightly-x86_64-w64-mingw32.tar.gz">Cargo</a>) nightlies.</p>
+
+<p>Alternatively, you can build Cargo from source.</p>
+
+<h1 id="let&#39;s-get-started" class='section-header'><a
+                           href="#let&#39;s-get-started">Let&#39;s Get Started</a></h1>
+<p>To start a new project with Cargo, use <code>cargo new</code>:</p>
+
+<pre><code class="language-shell">$ cargo new hello_world --bin
+</code></pre>
+
+<p>We&#39;re passing <code>--bin</code> because we&#39;re making a binary program: if we
+were making a library, we&#39;d leave it off.</p>
+
+<p>Let&#39;s check out what Cargo has generated for us:</p>
+
+<pre><code class="language-shell">$ cd hello_world
+$ tree .
+.
+├── Cargo.toml
+└── src
+    └── main.rs
+
+1 directory, 2 files
+</code></pre>
+
+<p>This is all we need to get started. First, let&#39;s check out <code>Cargo.toml</code>:</p>
+
+<pre><code class="language-toml">[package]
+
+name = &quot;hello_world&quot;
+version = &quot;0.0.1&quot;
+authors = [&quot;Your Name &lt;you@example.com&gt;&quot;]
+</code></pre>
+
+<p>This is called a <strong>manifest</strong>, and it contains all of the metadata that Cargo
+needs to compile your project.</p>
+
+<p>Here&#39;s what&#39;s in <code>src/main.rs</code>:</p>
+<pre class='rust '>
+<span class='kw'>fn</span> <span class='ident'>main</span>() {
+    <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;Hello, world!&quot;</span>)
+}
+</pre>
+
+<p>Cargo generated a &#39;hello world&#39; for us. Let&#39;s compile it:</p>
+
+<pre><code class="language-shell">$ cargo build
+<span style="font-weight: bold"
+class="s1">   Compiling</span> hello_world v0.0.1 (file:///path/to/project/hello_world)</code></pre>
+
+<p>And then run it:</p>
+
+<pre><code class="language-shell">$ ./target/hello_world
+Hello, world!
+</code></pre>
+
+<p>We can also use <code>cargo run</code> to compile and then run it, all in one step:</p>
+
+<pre><code class="language-shell">$ cargo run
+<span style="font-weight: bold"
+class="s1">     Fresh</span> hello_world v0.0.1 (file:///path/to/project/hello_world)
+<span style="font-weight: bold"
+class="s1">   Running</span> `target/hello_world`
+Hello, world!</code></pre>
+
+<h1 id="going-further" class='section-header'><a
+                           href="#going-further">Going Further</a></h1>
+<p>For more details on using Cargo, check out the <a href="/guide.html">Cargo Guide</a></p>
+
+    <script type="text/javascript">
+        window.playgroundUrl = "";
+    </script>
+      <footer>
+    <a href='guide.html'>Guide</a> |
+    <a href='faq.html'>Frequently Asked Questions</a> |
+    <a href='manifest.html'>Manifest Format</a> |
+    <a href='native-build.html'>Building Non-Rust Code</a> |
+    <a href='config.html'>Configuration</a>
+  </footer>
+</main>
+
+<script type='text/javascript' src='javascripts/prism.js'></script>
+<script type='text/javascript' src='javascripts/all.js'></script>
+
+
+</body>
+</html>
